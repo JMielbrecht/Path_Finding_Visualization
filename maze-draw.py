@@ -39,7 +39,7 @@ except StopIteration:
 
 mapArr = pygame.surfarray.pixels2d(screen) / 255
 print(mapArr)
-print(mapArr.size)
+print(mapArr[0].size)
 
 # START AND GOAL:
 start = (0, 0)
