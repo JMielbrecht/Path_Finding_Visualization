@@ -8,101 +8,8 @@ from matplotlib.pyplot import figure
 
 
 pygame.init()
-
-
-class Node:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
-        self.Gcost = 0  # distance from starting Node
-        self.Hcost = 0  # distance from end node
-        self.Fcost = 0  # Fcost = Gcost + Hcost
-        self.parentNode = None
-        self.neighbour = []
-        self.open = False
-        self.closed = False
-        self.wall = False
-
-    def addNeighbor(self, grid):
-        x = self.x
-        y = self.y
-
-        if x < columns - 1 and self.wall == False: # if it is a wall do not include
-            if y > 0:
-                self.neighbour.append(grid[x + 1][y - 1])   #-----------------------------
-            self.neighbour.append(grid[x + 1][y])           # adds neighbours to the right only if it is a node not along the right wall of the grid
-            if y < rows - 1:
-                self.neighbour.append(grid[x + 1][y + 1])   #-----------------------------
-        if x > 0 and self.wall == False:
-            if y > 0:
-                self.neighbour.append(grid[x - 1][y - 1])   # -----------------------------
-            self.neighbour.append(grid[x - 1][y])           # adds neighbours to the left only if it is a node not along the left wall of the grid
-            if y < rows - 1:
-                self.neighbour.append(grid[x - 1][y + 1])   # -----------------------------
-        if y > 0 and self.wall == False:
-            self.neighbour.append(grid[x][y - 1])           # adds neighbours directly above only if it is a node not along the top of the grid
-        if y < rows - 1 and self.wall == False:
-            self.neighbour.append(grid[x][y + 1])           # adds neighbours directly below only if it is a node not along the bottom of the grid
-
-
-
-#FUNCTONS
-
-#calculates Hcost
-def calcDistance(currentNode, endNode):
-    return math.sqrt(pow(currentNode.x - endNode.x, 2) + pow(currentNode.y - endNode.y, 2)) #Hcost of the current node
-
-
-# sets the size of the grid
-rows = 25
-columns = 25
-
-# creates 2d array which is going to be used for the grid
-grid = [[0 for i in range(columns)] for j in range(rows)]
-
-# makes each element of the area equal to box
-for i in range(columns):
-    for j in range(rows):
-        grid[i][j] = Node
-
-def reconstruct_path(cameFrom, current):
-    total_path = {current}
-    while current in cameFrom.Keys:
-        current = cameFrom[current]
-        total_path.prepend(current)
-    return total_path
-
-'''
-# TEST CASE
-path_map = np.array([   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
-'''
 ############# INTERACTIVE MAP MAKING #############
-screen = pygame.display.set_mode((100,100), 0, 8)
+screen = pygame.display.set_mode((200,200), 0, 8)
 BKG = (0, 0, 0)
 screen.fill(BKG)  # white screen
 draw_on = False
@@ -149,6 +56,7 @@ goal = (0, 0)
 
 # CUSTOMIZE START/GOAL
 pos_arr = [start, goal]
+color_arr = [(255,255,0), (255,0,0)]
 i = 0
 try:
     while True:
@@ -163,6 +71,7 @@ try:
                     print("Invalid point chosen.")
                     pass
                 else:
+                    pygame.draw.circle(screen, color_arr[i], pos_arr[i], 2)
                     print("Valid point chosen.")
                     i += 1
                     if i >= len(pos_arr):
@@ -175,22 +84,132 @@ except StopIteration:
     pass
 ############################################
 
+'''
 # MAP OUTPUT
 fig, ax = plt.subplots(figsize=(12,12))
 ax.imshow(mapArr, cmap=plt.cm.tab20b)
 ax.scatter(pos_arr[0][1], pos_arr[0][0], marker = "*", color = "yellow", s = 200)
 ax.scatter(pos_arr[1][1], pos_arr[1][0], marker = "*", color = "red", s = 200)
 plt.show()
+'''
+
 
 pygame.quit()
 
-# adds the neighbours list to each node
+rows = len(mapArr)
+print(rows)
+columns = len(mapArr[0])
+print(columns)
+
+class Node:
+    def __init__(self, x, y, map):
+        self.x = x
+        self.y = y
+        self.Gcost = 0  # distance from starting Node
+        self.Hcost = 0  # distance from end node
+        self.Fcost = 0  # Fcost = Gcost + Hcost
+        self.parentNode = None
+        self.neighbour = []
+
+        if map[x][y] == 1:
+            self.wall = True
+        else:
+            self.wall = False
+
+        self.open = False
+        self.closed = False
+
+
+    def addNeighbor(self, grid):
+        x = self.x
+        y = self.y
+
+        if x < columns - 1 and self.wall == False: # if it is a wall do not include
+            if y > 0:
+                self.neighbour.append(grid[x + 1][y - 1])   #-----------------------------
+            self.neighbour.append(grid[x + 1][y])           # adds neighbours to the right only if it is a node not along the right wall of the grid
+            if y < rows - 1:
+                self.neighbour.append(grid[x + 1][y + 1])   #-----------------------------
+        if x > 0 and self.wall == False:
+            if y > 0:
+                self.neighbour.append(grid[x - 1][y - 1])   # -----------------------------
+            self.neighbour.append(grid[x - 1][y])           # adds neighbours to the left only if it is a node not along the left wall of the grid
+            if y < rows - 1:
+                self.neighbour.append(grid[x - 1][y + 1])   # -----------------------------
+        if y > 0 and self.wall == False:
+            self.neighbour.append(grid[x][y - 1])           # adds neighbours directly above only if it is a node not along the top of the grid
+        if y < rows - 1 and self.wall == False:
+            self.neighbour.append(grid[x][y + 1])           # adds neighbours directly below only if it is a node not along the bottom of the grid
+
+#GRAPH FUNCTIONS
+#calculates Hcost
+def calcDistance(currentNode, endNode):
+    return math.sqrt(pow(currentNode.x - endNode.x, 2) + pow(currentNode.y - endNode.y, 2)) #Hcost of the current node
+
+# ====================
+
+# CREATE INT MAP ARRAY from FLOAT MAP ARRAY
+drawn_map = [[0 for j in range(columns)] for k in range(rows)]
+
+# convert each element in grid float -> int
 for i in range(columns):
     for j in range(rows):
+        drawn_map[i][j] = int(mapArr[i][j])
+
+# creates 2d array which is going to be used for the graph
+grid = [[None for x in range(rows)] for y in range(columns)]
+
+# makes each element of the area equal to box
+for i in range(len(grid[0])):
+    for j in range(len(grid[0])):
+        grid[i][j] = Node(i, j, drawn_map)
+
+def reconstruct_path(cameFrom, current):
+    total_path = {current}
+    while current in cameFrom.Keys:
+        current = cameFrom[current]
+        total_path.prepend(current)
+    return total_path
+
+'''
+# TEST CASE
+path_map = np.array([   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+'''
+
+# adds the neighbours list to each node
+for i in range(len(grid)):
+    for j in range(len(grid[0])):
         grid[i][j].addNeighbor(grid)
 
-start = grid[0][0] #start node
-end = grid[20][20] #end node
+start = grid[pos_arr[0][0]][pos_arr[0][1]] #start node
+print(pos_arr[1][0])
+print(pos_arr[1][1])
+end = grid[pos_arr[1][0]][pos_arr[1][1]] #end node
 
 openList = []
 openListFcost = [] #for heap might implement
