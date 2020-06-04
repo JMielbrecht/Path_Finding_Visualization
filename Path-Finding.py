@@ -1,105 +1,16 @@
 
-import pygame
 import math
-import heapq
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import figure
-
+import pygame
+from pygame.locals import *
 
 pygame.init()
-############# INTERACTIVE MAP MAKING #############
-screen = pygame.display.set_mode((200,200), 0, 8)
-BKG = (0, 0, 0)
-screen.fill(BKG)  # white screen
-draw_on = False
-last_pos = (0, 0)
-color = (255, 255, 255)
-radius = 1
 
-def roundline(srf, color, start, end, radius=1):
-    dx = end[0]-start[0]
-    dy = end[1]-start[1]
-    distance = max(abs(dx), abs(dy))
-    for i in range(distance):
-        x = int( start[0]+float(i)/distance*dx)
-        y = int( start[1]+float(i)/distance*dy)
-        pygame.draw.circle(srf, color, (x, y), radius)
+boardSize = (500, 500)
 
-try:
-    while True:
-        e = pygame.event.wait()
-        if e.type == pygame.QUIT:
-            raise StopIteration
-        if e.type == pygame.MOUSEBUTTONDOWN:
-            pygame.draw.circle(screen, color, e.pos, radius)
-            draw_on = True
-        if e.type == pygame.MOUSEBUTTONUP:
-            draw_on = False
-        if e.type == pygame.MOUSEMOTION:
-            if draw_on:
-                pygame.draw.circle(screen, color, e.pos, radius)
-                roundline(screen, color, e.pos, last_pos,  radius)
-            last_pos = e.pos
-        pygame.display.flip()
-
-except StopIteration:
-    pass
-
-mapArr = pygame.surfarray.pixels2d(screen) / 255
-print(mapArr)
-print(mapArr[0].size)
-
-# START AND GOAL:
-start = (0, 0)
-goal = (0, 0)
-
-# CUSTOMIZE START/GOAL
-pos_arr = [start, goal]
-color_arr = [(255,255,0), (255,0,0)]
-i = 0
-try:
-    while True:
-        while i < len(pos_arr):
-            e = pygame.event.wait()
-            if e.type == pygame.QUIT or i >= len(pos_arr):
-                raise StopIteration
-            if e.type == pygame.MOUSEBUTTONUP:
-                x, y = pygame.mouse.get_pos()
-                pos_arr[i] = (x, y)
-                if mapArr[x][y] == 1.:
-                    print("Invalid point chosen.")
-                    pass
-                else:
-                    pygame.draw.circle(screen, color_arr[i], pos_arr[i], 2)
-                    print("Valid point chosen.")
-                    i += 1
-                    if i >= len(pos_arr):
-                        raise StopIteration
-            if e.type == pygame.MOUSEMOTION:
-                pass
-            pygame.display.flip()
-
-except StopIteration:
-    pass
-############################################
-
-'''
-# MAP OUTPUT
-fig, ax = plt.subplots(figsize=(12,12))
-ax.imshow(mapArr, cmap=plt.cm.tab20b)
-ax.scatter(pos_arr[0][1], pos_arr[0][0], marker = "*", color = "yellow", s = 200)
-ax.scatter(pos_arr[1][1], pos_arr[1][0], marker = "*", color = "red", s = 200)
-plt.show()
-'''
+screen = pygame.display.set_mode(boardSize)
+clock = pygame.time.Clock()
 
 
-pygame.quit()
-
-rows = len(mapArr)
-print(rows)
-columns = len(mapArr[0])
-print(columns)
 
 class Node:
     def __init__(self, x, y, map):
@@ -126,16 +37,20 @@ class Node:
 
         if x < columns - 1 and self.wall == False: # if it is a wall do not include
             if y > 0:
-                self.neighbour.append(grid[x + 1][y - 1])   #-----------------------------
-            self.neighbour.append(grid[x + 1][y])           # adds neighbours to the right only if it is a node not along the right wall of the grid
+                if grid[x + 1][y].wall == False and grid[x][y - 1].wall == False: #-----------------------------
+                    self.neighbour.append(grid[x + 1][y - 1])
+            self.neighbour.append(grid[x + 1][y])                               # adds neighbours to the right only if it is a node not along the right wall of the grid
             if y < rows - 1:
-                self.neighbour.append(grid[x + 1][y + 1])   #-----------------------------
+                if grid[x + 1][y].wall == False and grid[x][y + 1].wall == False:
+                    self.neighbour.append(grid[x + 1][y + 1])                   #-----------------------------
         if x > 0 and self.wall == False:
             if y > 0:
-                self.neighbour.append(grid[x - 1][y - 1])   # -----------------------------
-            self.neighbour.append(grid[x - 1][y])           # adds neighbours to the left only if it is a node not along the left wall of the grid
+                if grid[x - 1][y].wall == False and grid[x][y - 1].wall == False:
+                    self.neighbour.append(grid[x - 1][y - 1])   # -----------------------------
+            self.neighbour.append(grid[x - 1][y])               # adds neighbours to the left only if it is a node not along the left wall of the grid
             if y < rows - 1:
-                self.neighbour.append(grid[x - 1][y + 1])   # -----------------------------
+                if grid[x - 1][y].wall == False and grid[x][y - 1].wall == False:
+                    self.neighbour.append(grid[x - 1][y + 1])   # -----------------------------
         if y > 0 and self.wall == False:
             self.neighbour.append(grid[x][y - 1])           # adds neighbours directly above only if it is a node not along the top of the grid
         if y < rows - 1 and self.wall == False:
@@ -147,9 +62,22 @@ def calcDistance(currentNode, endNode):
     return math.sqrt(pow(currentNode.x - endNode.x, 2) + pow(currentNode.y - endNode.y, 2)) #Hcost of the current node
 
 # ====================
+# sets the size of the grid
+rows = 50
+columns = 50
 
-# CREATE INT MAP ARRAY from FLOAT MAP ARRAY
-drawn_map = [[0 for j in range(columns)] for k in range(rows)]
+#for pygame and display
+width = boardSize[0]/columns
+height = boardSize[1]/rows
+darkGreen = (12, 64, 0)
+red = (100, 0, 0)
+lightRed = (220, 0, 0)
+green = (0, 255, 0)
+blue = (0, 50, 255)
+grey = (215, 215, 215)
+white = (255, 255, 255)
+black = (0, 0, 0)
+
 
 # convert each element in grid float -> int
 for i in range(columns):
@@ -201,15 +129,60 @@ path_map = np.array([   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0
                    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
 '''
 
+
+
+
+start = None #start node
+end = None #end node
+
+screen.fill(white)
+for y in range(columns):
+    for x in range(rows):
+        # rect = pygame.Rect(x * (height + 1), y * (width + 1), height, width)
+        pygame.draw.rect(screen, grey, [(width) * x, (height) * y, width, height], 1)
+        pygame.display.update()
+running = True
+while running:
+
+    for event in pygame.event.get():
+
+        if pygame.mouse.get_pressed()[0]:
+            position = pygame.mouse.get_pos()
+            p1 = position[0] // (boardSize[0] // columns)
+            p2 = position[1] // (boardSize[1] // rows)
+            box = grid[p1][p2]
+            if box != start and box != end and box.wall == False:
+                box.wall = True
+                pygame.draw.rect(screen, black, (p1 * width, p2 * height, width, height), 0)
+        elif pygame.mouse.get_pressed()[2]:
+            position = pygame.mouse.get_pos()
+            p1 = position[0] // (boardSize[0] // columns)
+            p2 = position[1] // (boardSize[1] // rows)
+            box = grid[p1][p2]
+            if box != start and box != end and box.wall == False:
+                if start == None:
+                    start = box
+                    pygame.draw.rect(screen, darkGreen, (p1 * width, p2 * height, width, height), 0)
+                elif end == None:
+                    end = box
+                    pygame.draw.rect(screen, red, (p1 * width, p2 * height, width, height), 0)
+
+        elif event.type == pygame.QUIT:
+            pygame.quit()
+
+        elif event.type == KEYDOWN:
+            if event.key == K_ESCAPE:
+                pygame.quit()
+            if event.key == K_RETURN:
+                running = False
+        pygame.display.update()
+    pygame.display.update()
+
+
 # adds the neighbours list to each node
 for i in range(len(grid)):
     for j in range(len(grid[0])):
         grid[i][j].addNeighbor(grid)
-
-start = grid[pos_arr[0][0]][pos_arr[0][1]] #start node
-print(pos_arr[1][0])
-print(pos_arr[1][1])
-end = grid[pos_arr[1][0]][pos_arr[1][1]] #end node
 
 openList = []
 openListFcost = [] #for heap might implement
@@ -228,17 +201,21 @@ def AstarAlgorithm():
             small = i
     currentNode = openList[small]
     currentNode.open = False
+    #pygame.draw.rect(screen, green, (currentNode.x * width, currentNode.y * height, width, height), 0)
     openList.pop(small)
 
     closedList.append(currentNode)
     currentNode.closed = True
+    if not (currentNode == start or currentNode == end):
+        pygame.draw.rect(screen, lightRed, (currentNode.x * width, currentNode.y * height, width, height), 0)
+        pygame.display.update()
 
     if currentNode == end:  #we found the path to the end node
         return True
 
     for i in range(len(currentNode.neighbour)):
         temp_gcost = currentNode.Gcost + calcDistance(currentNode, currentNode.neighbour[i])
-        if currentNode.neighbour[i].wall == True or currentNode.neighbour[i].closed == True: #if neighbour is a wall or if it is in the closed list skip the node
+        if currentNode.neighbour[i].wall == True or currentNode.neighbour[i].closed == True or currentNode.neighbour[i] == start: #if neighbour is a wall or if it is in the closed list skip the node
             pass
         elif currentNode.neighbour[i].open == False or currentNode.neighbour[i].Gcost > temp_gcost:
             currentNode.neighbour[i].Hcost = calcDistance(currentNode.neighbour[i], end)
@@ -249,6 +226,9 @@ def AstarAlgorithm():
             if currentNode.neighbour[i] not in openList:
                 openList.append(currentNode.neighbour[i])
                 currentNode.neighbour[i].open = True
+                if not currentNode.neighbour[i] == end:
+                    pygame.draw.rect(screen, green, (currentNode.neighbour[i].x * width, currentNode.neighbour[i].y * height, width, height), 0)
+                    pygame.display.update()
 
     return False
 
@@ -262,7 +242,14 @@ start.open = True
 foundEnd = False
 
 while foundEnd == False:
+    event = pygame.event.poll()
+    if event.type == pygame.QUIT:
+        pygame.quit()
     foundEnd = AstarAlgorithm()
+    pygame.display.update()
+    #clock.tick(10)
+
+
 
 # backtracks the shortest path from end to start
 temp = end
@@ -273,6 +260,18 @@ while temp != start:
 # reverses the list so the order of the list is start to end
 shortestPath.reverse()
 
+count = 0
+display = True
+
+while display == True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            display = False
+    pygame.draw.rect(screen, blue, (shortestPath[count].x * width, shortestPath[count].y * height, width, height), 0)
+    pygame.display.update()
+    #clock.tick(30)
+    if count < len(shortestPath) - 1:
+        count += 1
 print(shortestPath)
 
 
