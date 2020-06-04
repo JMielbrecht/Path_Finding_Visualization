@@ -1,6 +1,5 @@
 
 import math
-
 import pygame
 from pygame.locals import *
 
@@ -12,8 +11,9 @@ screen = pygame.display.set_mode(boardSize)
 clock = pygame.time.Clock()
 
 
+
 class Node:
-    def __init__(self, x, y):
+    def __init__(self, x, y, map):
         self.x = x
         self.y = y
         self.Gcost = 0  # distance from starting Node
@@ -21,9 +21,15 @@ class Node:
         self.Fcost = 0  # Fcost = Gcost + Hcost
         self.parentNode = None
         self.neighbour = []
+
+        if map[x][y] == 1:
+            self.wall = True
+        else:
+            self.wall = False
+
         self.open = False
         self.closed = False
-        self.wall = False
+
 
     def addNeighbor(self, grid):
         x = self.x
@@ -50,15 +56,12 @@ class Node:
         if y < rows - 1 and self.wall == False:
             self.neighbour.append(grid[x][y + 1])           # adds neighbours directly below only if it is a node not along the bottom of the grid
 
-
-
-#FUNCTONS
-
+#GRAPH FUNCTIONS
 #calculates Hcost
 def calcDistance(currentNode, endNode):
     return math.sqrt(pow(currentNode.x - endNode.x, 2) + pow(currentNode.y - endNode.y, 2)) #Hcost of the current node
 
-
+# ====================
 # sets the size of the grid
 rows = 50
 columns = 50
@@ -76,13 +79,55 @@ white = (255, 255, 255)
 black = (0, 0, 0)
 
 
-# creates 2d array which is going to be used for the grid
-grid = [[0 for i in range(columns)] for j in range(rows)]
-
-# makes each element of the area equal to box
+# convert each element in grid float -> int
 for i in range(columns):
     for j in range(rows):
-        grid[i][j] = Node(i, j)
+        drawn_map[i][j] = int(mapArr[i][j])
+
+# creates 2d array which is going to be used for the graph
+grid = [[None for x in range(rows)] for y in range(columns)]
+
+# makes each element of the area equal to box
+for i in range(len(grid[0])):
+    for j in range(len(grid[0])):
+        grid[i][j] = Node(i, j, drawn_map)
+
+def reconstruct_path(cameFrom, current):
+    total_path = {current}
+    while current in cameFrom.Keys:
+        current = cameFrom[current]
+        total_path.prepend(current)
+    return total_path
+
+'''
+# TEST CASE
+path_map = np.array([   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+'''
 
 
 
@@ -135,10 +180,9 @@ while running:
 
 
 # adds the neighbours list to each node
-for i in range(columns):
-    for j in range(rows):
+for i in range(len(grid)):
+    for j in range(len(grid[0])):
         grid[i][j].addNeighbor(grid)
-
 
 openList = []
 openListFcost = [] #for heap might implement
@@ -229,6 +273,7 @@ while display == True:
     if count < len(shortestPath) - 1:
         count += 1
 print(shortestPath)
+
 
 
 
