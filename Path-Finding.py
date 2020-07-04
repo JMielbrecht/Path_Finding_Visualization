@@ -93,7 +93,7 @@ screen.fill(white)
 for y in range(columns):
     for x in range(rows):
         # rect = pygame.Rect(x * (height + 1), y * (width + 1), height, width)
-        pygame.draw.rect(screen, grey, [(width) * x, (height) * y, width, height], 1)
+        pygame.draw.rect(screen, grey, [int(width * x), int(height * y), int(width), int(height)], 1)
         pygame.display.update()
 running = True
 while running:
@@ -107,7 +107,7 @@ while running:
             box = grid[p1][p2]
             if box != start and box != end and box.wall == False:
                 box.wall = True
-                pygame.draw.rect(screen, black, (p1 * width, p2 * height, width, height), 0)
+                pygame.draw.rect(screen, black, (int(p1 * width), int(p2 * height), int(width), int(height)), 0)
         elif pygame.mouse.get_pressed()[2]:
             position = pygame.mouse.get_pos()
             p1 = position[0] // (boardSize[0] // columns)
@@ -116,10 +116,10 @@ while running:
             if box != start and box != end and box.wall == False:
                 if start == None:
                     start = box
-                    pygame.draw.rect(screen, darkGreen, (p1 * width, p2 * height, width, height), 0)
+                    pygame.draw.rect(screen, darkGreen, (int(p1 * width), int(p2 * height), int(width), int(height)), 0)
                 elif end == None:
                     end = box
-                    pygame.draw.rect(screen, red, (p1 * width, p2 * height, width, height), 0)
+                    pygame.draw.rect(screen, red, (int(p1 * width), int(p2 * height), int(width), int(height)), 0)
 
         elif event.type == pygame.QUIT:
             pygame.quit()
@@ -154,7 +154,13 @@ def AstarAlgorithm():
     for i in range((len(openList))):
         if openList[i].Fcost < openList[small].Fcost:
             small = i
-    currentNode = openList[small]
+    try:
+        currentNode = openList[small]
+    except(IndexError):
+        print("No shortest path found.")
+        # If no path is found between the nodes, the program ends as if it had found it.
+        return True
+
     currentNode.open = False
     #pygame.draw.rect(screen, green, (currentNode.x * width, currentNode.y * height, width, height), 0)
     openList.pop(small)
@@ -162,7 +168,7 @@ def AstarAlgorithm():
     closedList.append(currentNode)
     currentNode.closed = True
     if not (currentNode == start or currentNode == end):
-        pygame.draw.rect(screen, lightRed, (currentNode.x * width, currentNode.y * height, width, height), 0)
+        pygame.draw.rect(screen, lightRed, (int(currentNode.x * width), int(currentNode.y * height), int(width), int(height)), 0)
         pygame.display.update()
 
     if currentNode == end:  #we found the path to the end node
@@ -182,7 +188,7 @@ def AstarAlgorithm():
                 openList.append(currentNode.neighbour[i])
                 currentNode.neighbour[i].open = True
                 if not currentNode.neighbour[i] == end:
-                    pygame.draw.rect(screen, green, (currentNode.neighbour[i].x * width, currentNode.neighbour[i].y * height, width, height), 0)
+                    pygame.draw.rect(screen, green, (int(currentNode.neighbour[i].x * width), int(currentNode.neighbour[i].y * height), int(width), int(height)), 0)
                     pygame.display.update()
 
     return False
@@ -209,7 +215,11 @@ while foundEnd == False:
 # backtracks the shortest path from end to start
 temp = end
 while temp != start:
-    temp = temp.parentNode
+    try:
+        temp = temp.parentNode
+    except AttributeError:
+        print("Node is null. No path has been found.")
+        break
     if temp != start:
         shortestPath.append(temp)
 # reverses the list so the order of the list is start to end
@@ -218,13 +228,16 @@ shortestPath.reverse()
 count = 0
 display = True
 
-while display == True:
+while display == True and shortestPath[count] != None:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             display = False
-    pygame.draw.rect(screen, blue, (shortestPath[count].x * width, shortestPath[count].y * height, width, height), 0)
+    pygame.draw.rect(screen, blue, (int(shortestPath[count].x * width), int(shortestPath[count].y * height), int(width), int(height)), 0)
     pygame.display.update()
     #clock.tick(30)
     if count < len(shortestPath) - 1:
         count += 1
-print(shortestPath)
+if shortestPath[count] != None:
+    print(shortestPath)
+else:
+    print("Program Finished: No path found.")
