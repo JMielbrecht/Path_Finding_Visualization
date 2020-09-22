@@ -2,7 +2,9 @@
 This is a collaborative personal project with @RileyRichards (https://github.com/RileyRichards). We wanted to make a desktop application that visualizes the A* pathfinding algorithm using PyGame. 
 
 # How to Use
-Run Path-Finding.py
+1. Open cmd
+2. Type `pip install -r requirements.txt`
+3. Run Path-Finding.py
 ## Controls
 - `Left Click and Drag` to draw walls
 - To set endpoints:
