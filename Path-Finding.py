@@ -1,4 +1,5 @@
 import math
+import sys
 import pygame
 from pygame.locals import *
 
@@ -24,7 +25,7 @@ class Node:
         self.Gcost = 0  # distance from starting Node
         self.Hcost = 0  # distance from end node
         self.Fcost = 0  # Fcost = Gcost + Hcost
-        self.parentNode = None
+        self.parentNode = None  # Points to previous node in path
         self.neighbour = []  # Array of self's neighboring nodes
         self.open = False
         self.closed = False
@@ -91,6 +92,11 @@ START_BTN = (0, 200, 0)
 END_BTN = (230, 0, 0)
 CLR_BTN = (255, 51, 0)
 
+# Keeps track of current start and end points
+curr_start = None
+curr_end = None
+
+
 '''FUNCTONS'''
 
 
@@ -104,7 +110,6 @@ def clear_screen():
     global end
     global running
     global grid
-    global clear_btn_pressed
 
     # Resetting variables
     start = None
@@ -121,7 +126,6 @@ def clear_screen():
             pygame.display.update()
             grid[x][y].clear_node  # Reset each node to default
 
-    clear_btn_pressed = False
     # Toolbar background
     pygame.draw.rect(screen, GREY, (0, 0, boardSize[0], 40))
 
@@ -140,7 +144,6 @@ def makeButton(surface, color, coords, text, fontSize=11):
 def text_objects(text, font, fontColor=BLACK):  
     textSurface = font.render(text, True, fontColor)
     return textSurface, textSurface.get_rect()
-
 
 # Highlights buttons, checks functionality
 def check_buttons():
@@ -226,9 +229,31 @@ def check_buttons():
             end_btn_pressed = False
             clear_btn_pressed = True
 
+# Clear "active" button state
+def clear_button_state():
+    global walls_btn_pressed
+    global start_btn_pressed
+    global end_btn_pressed
+    global clear_btn_pressed
+
+    walls_btn_pressed = False
+    start_btn_pressed = False
+    end_btn_pressed = False
+    clear_btn_pressed = False
+
+# Clears start point / end point, returns color of square to gray
+def reset_start(x, y, node):
+    curr_start
 
 # THE ALGORITHM
 def AstarAlgorithm():
+
+    # global variables
+    global openList
+    global closedList
+    global currentNode
+    
+
     #currentNode becomes lowest Fcost Node from OpenList
 
     small = 0
@@ -278,48 +303,6 @@ def AstarAlgorithm():
                     pygame.display.update()
 
     return False
-
-
-# (Grabbed everything before run_visualization() and after the game loop)
-def construct_graph():
-
-    # adds the neighbours list to each node
-    for i in range(COLS):
-        for j in range(ROWS):
-            grid[i][j].addNeighbor(grid)
-
-    # Initializing data structures used in A* algorithm
-    openList = []
-    closedList = []
-    wallList = []
-    shortestPath = []
-    pathLength = 0
-
-    #adds start node to openList
-    openList.append(start)
-    start.open = True
-    foundEnd = False
-
-    while foundEnd == False:
-        event = pygame.event.poll()
-        if event.type == pygame.QUIT:
-            pygame.quit()
-        foundEnd = AstarAlgorithm()
-        pygame.display.update()
-        #clock.tick(10)
-
-    # backtracks the shortest path from end to start
-    temp = end
-    while temp != start:
-        try:
-            temp = temp.parentNode
-        except AttributeError:
-            print("Node is null. No path has been found.")
-            break
-        if temp != start:
-            shortestPath.append(temp)
-    # reverses the list so the order of the list is start to end
-    shortestPath.reverse()
 
 
 # Runs the pathfinder visualization on-screen; should be called only once during game loop unless application is reset
@@ -438,19 +421,58 @@ while running:
                     pygame.draw.rect(screen, RED, (int(p1 * WIDTH), int(p2 * HEIGHT), int(WIDTH), int(HEIGHT)), 0)
         elif clear_btn_pressed:
             clear_screen()
+            clear_button_state()
         elif event.type == pygame.QUIT:
             pygame.display.quit()
-            pygame.quit()
-            sys.exit()
+            sys.exit(1)
         elif event.type == KEYDOWN:
             if event.key == K_ESCAPE:
                 pygame.quit()
-                sys.exit()
+                sys.exit(0)
             if event.key == K_RETURN:
+                print("Enter button pressed")
                 running = False
+
         pygame.display.update()
     pygame.display.update()
 
+# adds the neighbours list to each node
+for i in range(COLS):
+    for j in range(ROWS):
+        grid[i][j].addNeighbor(grid)
 
-construct_graph()
+# Initializing data structures used in A* algorithm
+openList = []
+closedList = []
+wallList = []
+shortestPath = []
+pathLength = 0
+
+#adds start node to openList
+openList.append(start)
+start.open = True
+foundEnd = False
+
+while foundEnd == False:
+    event = pygame.event.poll()
+    if event.type == pygame.QUIT:
+        pygame.quit()
+    foundEnd = AstarAlgorithm()
+    pygame.display.update()
+    #clock.tick(10)
+
+# backtracks the shortest path from end to start
+temp = end
+while temp != start:
+    try:
+        temp = temp.parentNode
+    except AttributeError:
+        print("Node is null. No path has been found.")
+        break
+    if temp != start:
+        shortestPath.append(temp)
+# reverses the list so the order of the list is start to end
+shortestPath.reverse()
+
+
 run_visualization()
