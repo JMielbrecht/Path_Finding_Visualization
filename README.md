@@ -1,6 +1,8 @@
 # Path_Finding_Visualization
 A* Path Finding Algorithm
 
+## HOW TO INSTALL
+Run ```python -m pip install requirements.txt```
 ## CONTROLS
 * Left-click and drag to draw barrier
 * Right-click to set start and end points
