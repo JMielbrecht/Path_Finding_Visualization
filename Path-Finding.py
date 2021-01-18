@@ -31,7 +31,7 @@ class Node:
         self.closed = False
         self.wall = False
 
-    def addNeighbor(self, grid):
+    def add_neighbor(self, grid):
         x = self.x
         y = self.y
 
@@ -124,36 +124,36 @@ def clear_screen():
             pygame.draw.rect(
                 screen, GREY, [int(WIDTH * x), int(HEIGHT * y), int(WIDTH), int(HEIGHT)], 1)
             pygame.display.update()
-            grid[x][y].clear_node  # Reset each node to default
+            grid[x][y].clear_node()  # Reset each node to default
 
     # Toolbar background
     pygame.draw.rect(screen, GREY, (0, 0, boardSize[0], 40))
 
 
 # Creates user-specified button
-def makeButton(surface, color, coords, text, fontSize=11):
+def make_button(surface, color, coords, text, font_size=11):
     pygame.draw.rect(surface, color, coords)
-    btnText = pygame.font.Font("freesansbold.ttf", fontSize)
-    textSurf, textRect = text_objects(text, btnText)
-    textRect.center = ((coords[0] + (coords[2]/2)),
+    btn_text = pygame.font.Font("freesansbold.ttf", font_size)
+    text_surface, text_rect = text_objects(text, btn_text)
+    text_rect.center = ((coords[0] + (coords[2]/2)),
                        (coords[1] + (coords[3]/2)))
-    screen.blit(textSurf, textRect)
+    screen.blit(text_surface, text_rect)
 
 
 # HELPER FUNCTION FOR makeButton()
-def text_objects(text, font, fontColor=BLACK):  
-    textSurface = font.render(text, True, fontColor)
-    return textSurface, textSurface.get_rect()
+def text_objects(text, font, font_color=BLACK):  
+    text_surface = font.render(text, True, font_color)
+    return text_surface, text_surface.get_rect()
 
 # Highlights buttons, checks functionality
 def check_buttons():
 
     mouse = pygame.mouse.get_pos()
-    drawWalls_hilighted = (250, 250, 250)
-    startPoint_hilighted = (0, 255, 0)
-    endPoint_hilighted = (255, 0, 0)
-    clearBtn = (255, 51, 0)
-    clearBtn_hilighted = (255, 77, 33)
+    draw_walls_highlighted = (250, 250, 250)
+    start_point_highlighted = (0, 255, 0)
+    end_point_highlighted = (255, 0, 0)
+    clear_btn = (255, 51, 0)
+    clear_btn_highlighted = (255, 77, 33)
 
     # Referencing global button-activation vars locally
     global walls_btn_pressed
@@ -163,37 +163,37 @@ def check_buttons():
 
     # Check 'DRAW WALLS' button
     if 5+90 > mouse[0] > 5 and 5+30 > mouse[1] > 5:
-        makeButton(screen, drawWalls_hilighted, (5, 5, 90, 30), "DRAW WALLS")
+        make_button(screen, draw_walls_highlighted, (5, 5, 90, 30), "DRAW WALLS")
     elif walls_btn_pressed:
-        makeButton(screen, drawWalls_hilighted, (5, 5, 90, 30), "DRAW WALLS")
+        make_button(screen, draw_walls_highlighted, (5, 5, 90, 30), "DRAW WALLS")
     else:
-        makeButton(screen, WHITE, (5, 5, 90, 30), "DRAW WALLS")
+        make_button(screen, WHITE, (5, 5, 90, 30), "DRAW WALLS")
 
     # Check 'START POINT' button
     if 110+80 > mouse[0] > 110 and 5 < mouse[1] < 5+30:
-        makeButton(screen, startPoint_hilighted,
+        make_button(screen, start_point_highlighted,
                    (110, 5, 80, 30), "START POINT")
     elif start_btn_pressed:
-        makeButton(screen, startPoint_hilighted,
+        make_button(screen, start_point_highlighted,
                    (110, 5, 80, 30), "START POINT")
     else:
-        makeButton(screen, START_BTN, (110, 5, 80, 30), "START POINT")
+        make_button(screen, START_BTN, (110, 5, 80, 30), "START POINT")
 
     # Check 'END POINT' button
     if 200+80 > mouse[0] > 200 and 5 < mouse[1] < 5+30:
-        makeButton(screen, endPoint_hilighted, (200, 5, 80, 30), "END POINT")
+        make_button(screen, end_point_highlighted, (200, 5, 80, 30), "END POINT")
     elif end_btn_pressed:
-        makeButton(screen, endPoint_hilighted, (200, 5, 80, 30), "END POINT")
+        make_button(screen, end_point_highlighted, (200, 5, 80, 30), "END POINT")
     else:
-        makeButton(screen, END_BTN, (200, 5, 80, 30), "END POINT")
+        make_button(screen, END_BTN, (200, 5, 80, 30), "END POINT")
 
     # Check 'CLEAR' button
     if 450+45 > mouse[0] > 450 and 5 < mouse[1] < 5+30:
-        makeButton(screen, clearBtn_hilighted, (450, 5, 45, 30), "CLEAR")
+        make_button(screen, clear_btn_highlighted, (450, 5, 45, 30), "CLEAR")
     elif clear_btn_pressed:
-        makeButton(screen, clearBtn_hilighted, (450, 5, 45, 30), "CLEAR")
+        make_button(screen, clear_btn_highlighted, (450, 5, 45, 30), "CLEAR")
     else:
-        makeButton(screen, clearBtn, (450, 5, 45, 30), "CLEAR")
+        make_button(screen, clear_btn, (450, 5, 45, 30), "CLEAR")
 
     ''' BUTTON ACTIVATION '''
     if (5+90 > mouse[0] > 5 and 5+30 > mouse[1] > 5):  # Draw Walls
@@ -205,7 +205,7 @@ def check_buttons():
             clear_btn_pressed = False
     elif (110+80 > mouse[0] > 110 and 5 < mouse[1] < 5+30):  # Start Point
         if pygame.mouse.get_pressed()[0]:
-            makeButton(screen, startPoint_hilighted,
+            make_button(screen, start_point_highlighted,
                        (110, 5, 80, 30), "START POINT")
             print("Start Point Button pressed")
             walls_btn_pressed = False
@@ -214,7 +214,7 @@ def check_buttons():
             clear_btn_pressed = False
     elif (200+80 > mouse[0] > 200 and 5 < mouse[1] < 5+30):  # End Point
         if pygame.mouse.get_pressed()[0]:
-            makeButton(screen, endPoint_hilighted,
+            make_button(screen, end_point_highlighted,
                        (200, 5, 80, 30), "END POINT")
             print("End Point Button pressed")
             walls_btn_pressed = False
@@ -349,10 +349,10 @@ running = True
 
 # Drawing GUI toolbar
 pygame.draw.rect(screen, GREY, (0, 0, boardSize[0], 40))  # Toolbar background
-makeButton(screen, WHITE, (5, 5, 90, 30), "DRAW WALLS")  # 'DRAW WALLS'
-makeButton(screen, GREEN, (110, 5, 80, 30), "START POINT")  # 'START POINT'
-makeButton(screen, END_BTN, (200, 5, 80, 30), "END POINT")  # 'END POINT'
-makeButton(screen, CLR_BTN, (450, 5, 45, 30), "CLEAR")  # 'CLEAR'
+make_button(screen, WHITE, (5, 5, 90, 30), "DRAW WALLS")  # 'DRAW WALLS'
+make_button(screen, GREEN, (110, 5, 80, 30), "START POINT")  # 'START POINT'
+make_button(screen, END_BTN, (200, 5, 80, 30), "END POINT")  # 'END POINT'
+make_button(screen, CLR_BTN, (450, 5, 45, 30), "CLEAR")  # 'CLEAR'
 
 
 '''
