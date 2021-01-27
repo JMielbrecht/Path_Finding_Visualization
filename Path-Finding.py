@@ -31,7 +31,7 @@ class Node:
         self.closed = False
         self.wall = False
 
-    def add_neighbor(self, grid):
+    def addNeighbor(self, grid):
         x = self.x
         y = self.y
 
@@ -354,45 +354,6 @@ make_button(screen, GREEN, (110, 5, 80, 30), "START POINT")  # 'START POINT'
 make_button(screen, END_BTN, (200, 5, 80, 30), "END POINT")  # 'END POINT'
 make_button(screen, CLR_BTN, (450, 5, 45, 30), "CLEAR")  # 'CLEAR'
 
-
-'''
-while running:
-
-    for event in pygame.event.get():
-        checkButtons()
-        if pygame.mouse.get_pressed()[0]:
-            position = pygame.mouse.get_pos()
-            p1 = position[0] // (boardSize[0] // columns)
-            p2 = position[1] // (boardSize[1] // rows)
-            box = grid[p1][p2]
-            if box != start and box != end and box.wall == False:
-                box.wall = True
-                pygame.draw.rect(screen, black, (int(p1 * width), int(p2 * height), int(width), int(height)), 0)
-        elif pygame.mouse.get_pressed()[2]:
-            position = pygame.mouse.get_pos()
-            p1 = position[0] // (boardSize[0] // columns)
-            p2 = position[1] // (boardSize[1] // rows)
-            box = grid[p1][p2]
-            if box != start and box != end and box.wall == False:
-                if start == None:
-                    start = box
-                    pygame.draw.rect(screen, darkGreen, (int(p1 * width), int(p2 * height), int(width), int(height)), 0)
-                elif end == None:
-                    end = box
-                    pygame.draw.rect(screen, red, (int(p1 * width), int(p2 * height), int(width), int(height)), 0)
-
-        elif event.type == pygame.QUIT:
-            pygame.quit()
-
-        elif event.type == KEYDOWN:
-            if event.key == K_ESCAPE:
-                pygame.quit()
-            if event.key == K_RETURN:
-                running = False
-        pygame.display.update()
-    pygame.display.update()
-'''
-
 # Game loop
 while running:
 
@@ -402,34 +363,37 @@ while running:
         position = pygame.mouse.get_pos()
         p1 = position[0] // (boardSize[0] // COLS)
         p2 = position[1] // (boardSize[1] // ROWS)
+        print("p1 = " + str(p1) + "  " + "p2 = " + str(p2))
         box = grid[p1][p2]
 
         if walls_btn_pressed:
             if pygame.mouse.get_pressed()[0]:
-                if box != start and box != end and box.wall == False:
+                if box != start and box != end and box.wall == False and p2 > 4:
                     box.wall = True
                     pygame.draw.rect(screen, BLACK, (int(p1 * WIDTH), int(p2 * HEIGHT), int(WIDTH), int(HEIGHT)), 0)
         elif start_btn_pressed:
             if pygame.mouse.get_pressed()[0]:
-                if box != start and box != end and box.wall == False:
+                if box != start and box != end and box.wall == False and p2 > 4:
                     start = box
                     pygame.draw.rect(screen, DARK_GREEN, (int(p1 * WIDTH), int(p2 * HEIGHT), int(WIDTH), int(HEIGHT)), 0)
+            start_btn_pressed = False
         elif end_btn_pressed:
             if pygame.mouse.get_pressed()[0]:
-                if box != start and box != end and box.wall == False:
+                if box != start and box != end and box.wall == False and p2 > 4:
                     end = box
                     pygame.draw.rect(screen, RED, (int(p1 * WIDTH), int(p2 * HEIGHT), int(WIDTH), int(HEIGHT)), 0)
+            end_btn_pressed = False
         elif clear_btn_pressed:
             clear_screen()
             clear_button_state()
         elif event.type == pygame.QUIT:
             pygame.display.quit()
             sys.exit(1)
-        elif event.type == KEYDOWN:
-            if event.key == K_ESCAPE:
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 sys.exit(0)
-            if event.key == K_RETURN:
+            if event.key == pygame.K_RETURN:
                 print("Enter button pressed")
                 running = False
 
